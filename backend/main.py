@@ -189,6 +189,7 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
     # Step 0: Initial Status and Error Checks
     if reference.title and "Error parsing with AI" in reference.title:
         reference.status = "Format Error"
+        reference.verification_score = 0
         return reference
 
     # Step 1: DOI Parsing and Direct Verification
@@ -203,6 +204,7 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
                     reference.status = "Verified"
                     reference.verified_doi = doi
                     reference.source = "DOI Verified"
+                    reference.verification_score = 100
                     return reference
         except Exception as e:
             print(f"DOI verification error for '{doi}': {type(e).__name__} - {e}")
@@ -211,20 +213,20 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
     raw_text_lower = reference.raw_text.lower()
     source_lower = (reference.source or "").lower()
     if "arxiv" in raw_text_lower or "arxiv" in source_lower:
-        reference.status = "Verified"; reference.source = "arXiv"; return reference
+        reference.status = "Verified"; reference.source = "arXiv"; reference.verification_score = 85; return reference
     if "ieee" in raw_text_lower or "ieee" in source_lower:
-        reference.status = "Verified"; reference.source = "IEEE Publication"; return reference
+        reference.status = "Verified"; reference.source = "IEEE Publication"; reference.verification_score = 85; return reference
     if "proceedings" in raw_text_lower or "conference" in raw_text_lower:
-        reference.status = "Verified"; reference.source = "Conference Paper"; return reference
+        reference.status = "Verified"; reference.source = "Conference Paper"; reference.verification_score = 85; return reference
 
     # Step 3: Sequential API Verification
     api_verifiers = [
-        ("CrossRef", "https://api.crossref.org/works"),
-        ("Semantic Scholar", "https://api.semanticscholar.org/graph/v1/paper/search"),
-        ("OpenAlex", "https://api.openalex.org/works")
+        ("CrossRef", "https://api.crossref.org/works", 95),
+        ("Semantic Scholar", "https://api.semanticscholar.org/graph/v1/paper/search", 90),
+        ("OpenAlex", "https://api.openalex.org/works", 90)
     ]
 
-    for name, url in api_verifiers:
+    for name, url, score_value in api_verifiers:
         if reference.title:
             try:
                 await asyncio.sleep(0.1)
@@ -251,6 +253,7 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
                         score = fuzz.token_set_ratio(reference.title.lower(), api_title.lower())
                         if score > 85:
                             reference.status = "Verified"
+                            reference.verification_score = score_value
                             if name == "CrossRef":
                                 reference.verified_doi = item.get('DOI')
                                 reference.source = f"CrossRef: {', '.join(item.get('container-title', []))}"
@@ -266,6 +269,7 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
 
     # --- Step 4: Final Analysis by AI ---
     reference.status = await asyncio.to_thread(llm_client.analyze_unverified_reference, reference)
+    reference.verification_score = 0
     return reference
 
 # --- Main Streaming Endpoint ---

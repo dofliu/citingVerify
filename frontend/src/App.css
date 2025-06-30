@@ -169,6 +169,35 @@ input[type="file"] {
   color: #00A99D;
 }
 
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.export-button {
+  background-color: #28a745; /* Green color for export */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  align-self: flex-start; /* Align to the left */
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.export-button:disabled {
+  background-color: #a8d5b1;
+  cursor: not-allowed;
+}
+
+
 /* Results Table Styling */
 .results-table-container {
   width: 100%;
@@ -242,4 +271,60 @@ input[type="file"] {
   margin: 5px 0;
   color: #586069;
   font-size: 0.9em;
+}
+
+/* Score-based Row Coloring */
+.results-table tbody tr.score-high {
+  background-color: #e6ffed; /* Light green */
+}
+.results-table tbody tr.score-medium {
+  background-color: #fffbe6; /* Light yellow */
+}
+.results-table tbody tr.score-low {
+  background-color: #fff0f1; /* Light red */
+}
+.results-table tbody tr.score-zero {
+  background-color: #f6f8fa; /* Light gray for unverified/error */
+}
+
+.results-table tbody tr.score-high:hover { background-color: #d1f7e0; }
+.results-table tbody tr.score-medium:hover { background-color: #fff3cd; }
+.results-table tbody tr.score-low:hover { background-color: #ffdfe2; }
+.results-table tbody tr.score-zero:hover { background-color: #e1e4e8; }
+
+
+/* Status Cell with Score Badge */
+.results-table td:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-text {
+  flex-grow: 1;
+}
+
+.score-badge {
+  background-color: #00A99D;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.score-high .score-badge { background-color: #28a745; }
+.score-medium .score-badge { background-color: #ffc107; color: #212529;}
+.score-low .score-badge { background-color: #fd7e14; }
+.score-zero .score-badge { display: none; }
+
+/* PDF Export Specific Styles */
+.pdf-export-active .link {
+  color: #000000 !important;
+  text-decoration: none !important;
+}
+
+.pdf-export-active .export-button {
+  display: none !important;
 }

@@ -15,6 +15,7 @@
   "summary_verified": "✅ Verified",
   "summary_unverified": "❌ Not Found / Error",
   "model_select_label": "Select Analysis Model:",
+  "export_button": "Export Report",
   "table_header_status": "Status",
   "table_header_authors": "Authors",
   "table_header_year": "Year",

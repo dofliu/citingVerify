@@ -15,6 +15,7 @@
   "summary_verified": "✅ 已驗證",
   "summary_unverified": "❌ 未找到 / 格式錯誤",
   "model_select_label": "選擇分析模型：",
+  "export_button": "匯出報告",
   "table_header_status": "狀態",
   "table_header_authors": "作者",
   "table_header_year": "年份",

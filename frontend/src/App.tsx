@@ -1,5 +1,7 @@
 import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './App.css';
 
 // Data structures match the backend schemas
@@ -40,6 +42,7 @@ const App: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const logContainerRef = useRef<HTMLDivElement>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-pro');
 
@@ -157,6 +160,67 @@ const App: React.FC = () => {
     i18n.changeLanguage(lng);
   };
 
+  const getRowClass = (score: number): string => {
+    if (score >= 95) return 'score-high';
+    if (score >= 85) return 'score-medium';
+    if (score > 0) return 'score-low';
+    return 'score-zero';
+  };
+
+  const handleExport = () => {
+    const input = reportContentRef.current;
+    if (!input) {
+      alert('Could not find the report content to export.');
+      return;
+    }
+  
+    // Temporarily add a class to the body to override link colors for the screenshot
+    document.body.classList.add('pdf-export-active');
+  
+    html2canvas(input, {
+      scale: 2, // Increase scale for better resolution
+      useCORS: true,
+      onclone: (document: Document) => {
+        // You can modify the cloned document here if needed before capture
+      }
+    }).then((canvas: HTMLCanvasElement) => {
+      // Remove the temporary class after the canvas is created
+      document.body.classList.remove('pdf-export-active');
+  
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+  
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+      const imgWidth = pdfWidth;
+      const imgHeight = imgWidth / ratio;
+  
+      // Check if the image height exceeds the page height
+      if (imgHeight > pdfHeight) {
+        // This basic implementation just adds the image and lets it get cut off.
+        // For multi-page, a more complex logic is needed to split the canvas.
+        console.warn("Report content is too long for a single PDF page.");
+      }
+  
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      const safeFilename = (selectedFile?.name || 'report').replace('.pdf', '');
+      pdf.save(`${safeFilename}_CitingVerify_Report.pdf`);
+    }).catch((err: any) => {
+      // Make sure to remove the class even if there's an error
+      document.body.classList.remove('pdf-export-active');
+      console.error("Error exporting to PDF:", err);
+      alert("An error occurred while exporting the report to PDF.");
+    });
+  };
+
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -199,7 +263,7 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      <main className="main-content">
+      <main className="main-content" ref={reportContentRef}>
         {error && <div className="error-message">{error}</div>}
         
         {!summary && !isProcessing && !error && (
@@ -219,10 +283,15 @@ const App: React.FC = () => {
         )}
 
         {summary && (
-          <div className="summary-grid">
-            <SummaryCard title={t('summary_total')} value={summary.total_references} />
-            <SummaryCard title={t('summary_verified')} value={summary.verified_count} />
-            <SummaryCard title={t('summary_unverified')} value={summary.not_found_count + summary.format_error_count} />
+          <div className="summary-section">
+            <div className="summary-grid">
+              <SummaryCard title={t('summary_total')} value={summary.total_references} />
+              <SummaryCard title={t('summary_verified')} value={summary.verified_count} />
+              <SummaryCard title={t('summary_unverified')} value={summary.not_found_count + summary.format_error_count} />
+            </div>
+            <button onClick={handleExport} className="export-button" disabled={isProcessing || references.length === 0}>
+              {t('export_button')}
+            </button>
           </div>
         )}
 
@@ -240,8 +309,11 @@ const App: React.FC = () => {
             </thead>
             <tbody>
               {references.map((ref, index) => (
-                <tr key={index}>
-                  <td>{ref.status === 'Verified' ? t('status_verified') : `${t('status_unverified_prefix')}${t('status_' + ref.status.replace(/ /g, '_'))}`}</td>
+                <tr key={index} className={getRowClass(ref.verification_score)}>
+                  <td>
+                    <span className="status-text">{ref.status === 'Verified' ? t('status_verified') : `${t('status_unverified_prefix')}${t('status_' + ref.status.replace(/ /g, '_'))}`}</span>
+                    <span className="score-badge">{ref.verification_score > 0 ? `${ref.verification_score.toFixed(0)}` : ''}</span>
+                  </td>
                   <td>{ref.authors?.join(', ') || t('value_na')}</td>
                   <td>{ref.year || t('value_na')}</td>
                   <td>
