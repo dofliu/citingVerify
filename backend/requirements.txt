@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+PyPDF2
+python-multipart
+google-generativeai
+httpx
+fuzzywuzzy
+openai

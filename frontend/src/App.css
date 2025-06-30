@@ -1,0 +1,245 @@
+/* General App Styling */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f7f8; /* Very light blue-gray background */
+  color: #2F4F4F; /* Dark Slate Gray for text for better readability */
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 350px;
+  background-color: #ffffff;
+  border-right: 1px solid #d0d7de;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.sidebar-header {
+  border-bottom: 1px solid #d0d7de;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.sidebar-header h1 {
+  color: #00A99D; /* Main teal color */
+  margin: 0;
+  font-size: 2em;
+}
+
+.sidebar-header p {
+  margin: 5px 0 0;
+  color: #586069;
+  font-size: 0.9em;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.file-upload-label {
+  border: 2px dashed #00A99D;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  color: #00A99D;
+  background-color: #f0f7f8;
+}
+
+.file-upload-label:hover {
+  background-color: #e0f0f0;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.sidebar button {
+  background-color: #00A99D;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sidebar button:hover:not(:disabled) {
+  background-color: #007a70;
+}
+
+.sidebar button:disabled {
+  background-color: #a0c4c1;
+  cursor: not-allowed;
+}
+
+/* Status Log Styling */
+.status-log-container {
+  margin-top: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.status-log-container h3 {
+  margin-top: 0;
+  color: #00A99D;
+  border-bottom: 1px solid #d0d7de;
+  padding-bottom: 10px;
+}
+
+.status-log {
+  flex-grow: 1;
+  overflow-y: auto;
+  background: #f0f7f8;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85em;
+  color: #586069;
+}
+
+.log-entry {
+  padding: 4px 0;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+/* Main Content Styling */
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.welcome-message {
+  text-align: center;
+  margin-top: 20vh;
+  color: #586069;
+}
+
+.error-message {
+  color: #d73a49;
+  background-color: #ffdce0;
+  border: 1px solid #d73a49;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Summary Cards Styling */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  text-align: center;
+}
+
+.summary-card h4 {
+  margin: 0 0 10px 0;
+  color: #586069;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+  color: #00A99D;
+}
+
+/* Results Table Styling */
+.results-table-container {
+  width: 100%;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.results-table th, .results-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.results-table thead {
+  background-color: #f0f7f8;
+}
+
+.results-table th {
+  font-weight: 600;
+  color: #2F4F4F;
+}
+
+.results-table tbody tr:hover {
+  background-color: #eaf6f5;
+}
+
+.link {
+  display: block;
+  color: #007a70;
+  font-size: 0.9em;
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.suggestion-cell {
+  color: #b58500; /* A softer yellow/gold for suggestions */
+  font-style: italic;
+}
+
+/* Paper Metadata Styling */
+.paper-metadata-container {
+  background-color: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.paper-metadata-container h3 {
+  color: #00A99D;
+  margin-top: 0;
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 10px;
+}
+
+.paper-metadata-container h2 {
+  font-size: 1.5em;
+  margin: 10px 0;
+  color: #2F4F4F;
+}
+
+.paper-metadata-container p {
+  margin: 5px 0;
+  color: #586069;
+  font-size: 0.9em;
+}
