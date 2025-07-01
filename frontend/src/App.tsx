@@ -1,7 +1,5 @@
 import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import './App.css';
 
 // Data structures match the backend schemas
@@ -167,58 +165,48 @@ const App: React.FC = () => {
     return 'score-zero';
   };
 
-  const handleExport = () => {
-    const input = reportContentRef.current;
-    if (!input) {
-      alert('Could not find the report content to export.');
+  const handleExport = async () => {
+    if (!summary || !paperMetadata) {
+      alert('No data available to generate a report.');
       return;
     }
   
-    // Temporarily add a class to the body to override link colors for the screenshot
-    document.body.classList.add('pdf-export-active');
+    const reportData = {
+      references,
+      summary,
+      paperMetadata,
+      language: i18n.language, // Pass current language to backend
+      model_name: selectedModel,
+    };
   
-    html2canvas(input, {
-      scale: 2, // Increase scale for better resolution
-      useCORS: true,
-      onclone: (document: Document) => {
-        // You can modify the cloned document here if needed before capture
-      }
-    }).then((canvas: HTMLCanvasElement) => {
-      // Remove the temporary class after the canvas is created
-      document.body.classList.remove('pdf-export-active');
-  
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
+    try {
+      const response = await fetch('http://localhost:8000/export-pdf/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData),
       });
   
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-      const imgWidth = pdfWidth;
-      const imgHeight = imgWidth / ratio;
-  
-      // Check if the image height exceeds the page height
-      if (imgHeight > pdfHeight) {
-        // This basic implementation just adds the image and lets it get cut off.
-        // For multi-page, a more complex logic is needed to split the canvas.
-        console.warn("Report content is too long for a single PDF page.");
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
   
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
       const safeFilename = (selectedFile?.name || 'report').replace('.pdf', '');
-      pdf.save(`${safeFilename}_CitingVerify_Report.pdf`);
-    }).catch((err: any) => {
-      // Make sure to remove the class even if there's an error
-      document.body.classList.remove('pdf-export-active');
+      a.download = `${safeFilename}_CitingVerify_Report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+  
+    } catch (err) {
       console.error("Error exporting to PDF:", err);
       alert("An error occurred while exporting the report to PDF.");
-    });
+    }
   };
 
   return (

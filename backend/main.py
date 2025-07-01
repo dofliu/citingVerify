@@ -11,6 +11,10 @@ import asyncio
 import httpx
 from fuzzywuzzy import fuzz
 
+# --- PDF Generation ---
+from report_generator import generate_pdf_report
+from fastapi.responses import StreamingResponse
+
 # --- LLM Integration ---
 import google.generativeai as genai
 from openai import OpenAI
@@ -273,7 +277,6 @@ async def verify_reference(reference: schemas.Reference, llm_client: LLMClient) 
     return reference
 
 # --- Main Streaming Endpoint ---
-from fastapi.responses import StreamingResponse
 
 @app.post("/stream-verify/")
 async def stream_verify_endpoint(file: UploadFile = File(...), model_name: str = Form("gemini-1.5-pro")):
@@ -361,3 +364,41 @@ async def stream_verification_process(pdf_content: bytes, model_name: str):
 
     except Exception as e:
         yield yield_event("error", {"message": f"An unexpected error occurred: {str(e)}"})
+
+# --- PDF Export Endpoint ---
+from pydantic import BaseModel
+
+class ReferenceExport(BaseModel):
+    raw_text: str
+    status: str
+    authors: Optional[List[str]] = None
+    year: Optional[int] = None
+    title: Optional[str] = None
+    source: Optional[str] = None
+    verification_score: float
+
+class SummaryExport(BaseModel):
+    total_references: int
+    verified_count: int
+    not_found_count: int
+    format_error_count: int
+
+class PaperMetadataExport(BaseModel):
+    title: Optional[str] = None
+    authors: Optional[List[str]] = None
+    year: Optional[int] = None
+    affiliation: Optional[str] = None
+
+class ReportPayload(BaseModel):
+    references: List[ReferenceExport]
+    summary: SummaryExport
+    paperMetadata: PaperMetadataExport
+    language: str
+    model_name: str
+
+@app.post("/export-pdf/")
+async def export_pdf_endpoint(payload: ReportPayload):
+    pdf_buffer = generate_pdf_report(payload.dict())
+    return StreamingResponse(pdf_buffer, media_type="application/pdf", headers={
+        "Content-Disposition": "attachment; filename=CitingVerify_Report.pdf"
+    })
